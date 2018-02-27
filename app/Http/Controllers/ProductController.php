@@ -16,13 +16,13 @@ class ProductController extends Controller {
     public function search(Request $request){
         $productName = $request->input('query');
         
-        // $token = $request->session()->get('token', 'not found');
-        // if($token == 'not found'){
-        //     $token = $this->getToken();
-        //     $request->session()->put('token', $token);
-        // }
+        $token = $request->session()->get('token', 'not found');
+        if($token == 'not found'){
+            $token = $this->getToken();
+            $request->session()->put('token', $token);
+        }
 
-        $response = $this->searchItem('', $productName);
+        $response = $this->searchItem($token, $productName);
 
         if($response->total > 0){
             // Insert new record to 'products' table if has not been searched perviously
@@ -51,7 +51,14 @@ class ProductController extends Controller {
     }
 
     // Search 'price_history' table for selected product record(s) using $productId 
-    public function item($id){
+    public function item(Request $request, $id){
+
+        $token = $request->session()->get('token', 'not found');
+        if($token == 'not found'){
+            $token = $this->getToken();
+            $request->session()->put('token', $token);
+        }
+
         // return: product_id, price, timestamp (JOIN 'products' table to for name)
         $query = "SELECT price_history.product_id, price_history.price, price_history.timestamp 
                     FROM products JOIN price_history 
@@ -62,7 +69,7 @@ class ProductController extends Controller {
         // Product price history
         $records = DB::select($query, array($id));
         // Product latest information 
-        $response = $this->getItem($id);
+        $response = $this->getItem($token, $id);
 
         // Check if $response->shortDescription property is empty
         $shortDescription = '';
@@ -143,8 +150,6 @@ class ProductController extends Controller {
     }
 
 
-
-    // TODO: Fix scope issue
     private function getToken(){
         $client = new Client(['base_uri' => 'https://api.ebay.com']);
 
@@ -160,11 +165,10 @@ class ProductController extends Controller {
         return $token;
     }
 
-    // TODO: If above is fixed, this will also be fixed
     private function searchItem($token, $keyword){
         $client = new Client(['base_uri' => 'https://api.ebay.com']);
     
-        $authorization = 'Bearer v^1.1#i^1#r^0#f^0#p^1#I^3#t^H4sIAAAAAAAAAOVXbWwURRju9gsrUBARDJJwLMWIuLuzu/e5cGeOK02P0PbkaqmcpNnbnW0X9nY3O3OUgx/UmhCjvzAaQkKA4EcgIgGBxIghTTQYMAS/QGNQEmMTQYkYAiYaP2b3jnKtBChUIfH+XOadd955n+d93pkd0Fdb9/jG5o2/TqTGVe7oA32VFMWPB3W1NfPrqypn1FSAMgdqR19DX3V/1Q8LkZwzbGkZRLZlIuhbmzNMJHnGKJ13TMmSkY4kU85BJGFFSsdblkoCCyTbsbClWAbtSzZG6YgW4EWZF0KaIAeyKiRW82rMditKK3xIA0GohYNBNRKJKGQeoTxMmgjLJo7SAuDDDBAYIdQOgMT7JT/PhsXwCtrXAR2kWyZxYQEd89KVvLVOWa43TlVGCDqYBKFjyXhTui2ebFzc2r6QK4sVK/GQxjLOo+GjhKVCX4ds5OGNt0Get5TOKwpEiOZixR2GB5XiV5O5jfQ9qkVV5AOqXwjxETEShKExobLJcnIyvnEerkVXGc1zlaCJdVy4GaOEjewqqODSqJWESDb63L+n8rKhazp0ovTiRfFn4qkUHWux1vWosCfOIMWRbegoTGpZI+MPqGGgilmVCYRASBRUtbRRMVqJ5hE7JSxT1V3SkK/VwosgyRqO5AaUcUOc2sw2J65hN6NyP+Eqh4K4wi1qsYp53GO6dYU5QoTPG968AkOrMXb0bB7DoQgjJzyKorRs27pKj5z0tFiSz1oUpXswtiWO6+3tZXtF1nK6OQEAnutsWZpWemBOpomv2+tFf/3mCxjdg6KQNib+Ei7YJJe1RKskAbObjhHtBUPBEu/D04qNtP7DUIaZG94RY9UhfID0BlBgRAwHFEXhx6JDYiWRcm4eMCsXmJzsrIbYNmQFMgrRWT4HHV2VxIAmiGENMmowojH+iKYx2YAaZHgNQgBhNqtEwv+nRrlVqacVy4Ypy9CVwpgIfszELjpqSnZwIQ0NgxhuVfXXBYlckP86PLfXRwXRjYFIENnWWVfbrGLlOEsmh5pr6vKyviPcOrkP76miEoBFpLpavMhYDy6L1iisA5GVd8gdzra553q7tRqapEuwYxkGdDr4O2Ji7E70u3SaXxeVYuiExq57Ddkoj8nb1LaM7yLq6n4qcx3kfICPBCPAH74ztSa8urYX/oNDa1SFbbYQhrdctlF8gHDDn0OxCu/H91OHQD+1n7yoAAfm8nPA7Nqqp6urJsxAOoasLmss0rtN8pXvQHY1LNiy7lTWUpmZ+3Z3lT3AdqwEDw89weqq+PFl7zEw89pMDT9p+kQ+DAQhRFjx+/kVYM612Wp+WvXUM6v+gC25qguvn7lw5ZMNXCIz8PbXYOKQE0XVVBBlVDQv+NbeErl0NtOrJ6bMb9i89dw6Tuk8nHjgWGvHmXF7D1ZsGdxjrcp+eTl+/juHvsw/Vz/YebjjcKLQenRl4sUDu79AGfGJRzfJ2658/Fa9nTm5dbO1/1gCv5s8MXXJzqBxWn1hUvx4z/K6Cd8fP3Fi7qntr31EzfylbiB2X/6bNw8+0hBE9M/TJp8P/pkZFz2wbUq7+cG+eZ2fH2pakGp+ef9jT743feeSi+xf087NeyjXN9ggNpyD9qYj7+Dug13r7z9wqRB9dmD5LG4DNSt18lTLnsHfjc5P699XP0sePfL8Wf2rV9dw0xed/vDUby+df7Cx8idqlzOwsyJT++PFyXtfWbBk/frqN2bvKpbvb1cj8ygaDwAA';
+        $authorization = 'Bearer ' . $token;
         $headers = ['Authorization' => $authorization];
 
         $request = new GuzzleRequest('GET', '/buy/browse/v1/item_summary/search?q=' . $keyword . '&limit=12', $headers);
@@ -174,10 +178,10 @@ class ProductController extends Controller {
         return $reponseBody;
     }
 
-    private function getItem($id){
+    private function getItem($token, $id){
         $client = new Client(['base_uri' => 'https://api.ebay.com']);
 
-        $authorization = 'Bearer v^1.1#i^1#r^0#f^0#p^1#I^3#t^H4sIAAAAAAAAAOVXbWwURRju9gsrUBARDJJwLMWIuLuzu/e5cGeOK02P0PbkaqmcpNnbnW0X9nY3O3OUgx/UmhCjvzAaQkKA4EcgIgGBxIghTTQYMAS/QGNQEmMTQYkYAiYaP2b3jnKtBChUIfH+XOadd955n+d93pkd0Fdb9/jG5o2/TqTGVe7oA32VFMWPB3W1NfPrqypn1FSAMgdqR19DX3V/1Q8LkZwzbGkZRLZlIuhbmzNMJHnGKJ13TMmSkY4kU85BJGFFSsdblkoCCyTbsbClWAbtSzZG6YgW4EWZF0KaIAeyKiRW82rMditKK3xIA0GohYNBNRKJKGQeoTxMmgjLJo7SAuDDDBAYIdQOgMT7JT/PhsXwCtrXAR2kWyZxYQEd89KVvLVOWa43TlVGCDqYBKFjyXhTui2ebFzc2r6QK4sVK/GQxjLOo+GjhKVCX4ds5OGNt0Get5TOKwpEiOZixR2GB5XiV5O5jfQ9qkVV5AOqXwjxETEShKExobLJcnIyvnEerkVXGc1zlaCJdVy4GaOEjewqqODSqJWESDb63L+n8rKhazp0ovTiRfFn4qkUHWux1vWosCfOIMWRbegoTGpZI+MPqGGgilmVCYRASBRUtbRRMVqJ5hE7JSxT1V3SkK/VwosgyRqO5AaUcUOc2sw2J65hN6NyP+Eqh4K4wi1qsYp53GO6dYU5QoTPG968AkOrMXb0bB7DoQgjJzyKorRs27pKj5z0tFiSz1oUpXswtiWO6+3tZXtF1nK6OQEAnutsWZpWemBOpomv2+tFf/3mCxjdg6KQNib+Ei7YJJe1RKskAbObjhHtBUPBEu/D04qNtP7DUIaZG94RY9UhfID0BlBgRAwHFEXhx6JDYiWRcm4eMCsXmJzsrIbYNmQFMgrRWT4HHV2VxIAmiGENMmowojH+iKYx2YAaZHgNQgBhNqtEwv+nRrlVqacVy4Ypy9CVwpgIfszELjpqSnZwIQ0NgxhuVfXXBYlckP86PLfXRwXRjYFIENnWWVfbrGLlOEsmh5pr6vKyviPcOrkP76miEoBFpLpavMhYDy6L1iisA5GVd8gdzra553q7tRqapEuwYxkGdDr4O2Ji7E70u3SaXxeVYuiExq57Ddkoj8nb1LaM7yLq6n4qcx3kfICPBCPAH74ztSa8urYX/oNDa1SFbbYQhrdctlF8gHDDn0OxCu/H91OHQD+1n7yoAAfm8nPA7Nqqp6urJsxAOoasLmss0rtN8pXvQHY1LNiy7lTWUpmZ+3Z3lT3AdqwEDw89weqq+PFl7zEw89pMDT9p+kQ+DAQhRFjx+/kVYM612Wp+WvXUM6v+gC25qguvn7lw5ZMNXCIz8PbXYOKQE0XVVBBlVDQv+NbeErl0NtOrJ6bMb9i89dw6Tuk8nHjgWGvHmXF7D1ZsGdxjrcp+eTl+/juHvsw/Vz/YebjjcKLQenRl4sUDu79AGfGJRzfJ2658/Fa9nTm5dbO1/1gCv5s8MXXJzqBxWn1hUvx4z/K6Cd8fP3Fi7qntr31EzfylbiB2X/6bNw8+0hBE9M/TJp8P/pkZFz2wbUq7+cG+eZ2fH2pakGp+ef9jT743feeSi+xf087NeyjXN9ggNpyD9qYj7+Dug13r7z9wqRB9dmD5LG4DNSt18lTLnsHfjc5P699XP0sePfL8Wf2rV9dw0xed/vDUby+df7Cx8idqlzOwsyJT++PFyXtfWbBk/frqN2bvKpbvb1cj8ygaDwAA';
+        $authorization = 'Bearer ' . $token;
         $headers = ['Authorization' => $authorization];
        
         $request = new GuzzleRequest('GET', '/buy/browse/v1/item/' . $id , $headers);
