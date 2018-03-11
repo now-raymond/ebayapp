@@ -61,6 +61,8 @@
 
         <!-- Products found -->
         <div class="container" style="padding:30px 0 70px 0">
+            <h1>Results for "{{ $query }}"</h1>
+
             <div class="card-group row">
                 @if($products != null)
                     @foreach ($products as $product)

@@ -15,6 +15,33 @@
         <!-- Font -->
         <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
         <!-- <link rel="stylesheet" href="{{ URL::asset('css/style.css') }}" type="text/css">  -->
+
+        <style>
+            .hideOverflow {
+                overflow:hidden;
+                white-space:nowrap;
+                text-overflow:ellipsis;
+                width:100%;
+                display:block;
+            }
+
+            /* The following overwrite some bootstrap css properties */
+            .card{
+                margin: 0 0 20px 0;
+                padding: 20px;
+            }
+
+            .card-img-top {
+                width: 100%;
+                height: 15vw;
+                object-fit: cover;
+            }       
+            
+            .card-title{
+                padding-top:10px;
+            }
+        </style>
+
     </head>
 
     <body>
@@ -28,6 +55,65 @@
             
             <button type="button" class="btn btn-outline-success" data-toggle="modal" data-target="#emailModal">My watch list</button>
         </nav>
+
+
+        <!-- Most watch products -->
+        <div class="container" style="padding:30px 0 70px 0">
+            <h1>Most Watched</h1>
+            <div class="card-group row">
+                @if($mostWatchedProducts != null)
+                    @foreach ($mostWatchedProducts as $product)
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3" style="text-decoration: none;">	
+                        <div class="card link-no-style">
+
+                            <form id="itemHistoryForm" method="GET" action="/item/{{ $product->ebay_id }}">
+                                <input type="hidden" name="name" value="{{ $product->name }}">
+                                <input type="hidden" name="price" value="{{ $product->last_known_price }}">
+                                <input type="hidden" name="image" value="{{ $product->image }}">
+                                <input type="hidden" name="url" value="{{ $product->url }}">
+                                                            
+                                <a href="#" onclick="$(this).closest('form').submit()"><img class="card-img-top" src="{{ $product->image }}"></a>
+                                <div class="card-block">
+                                    <h5 class="card-title hideOverflow">{{ $product->name }}</h5>
+                                    USD {{ $product->last_known_price }}
+                                </div>
+                            </form> 
+                        </div>      
+                     </div>
+                    @endforeach
+                @endif     
+            </div>    
+
+            <hr>
+            
+            <!-- Trending products -->
+            <h1>Trending</h1>
+            <div class="card-group row">
+                @if($trendingProducts != null)
+                    @foreach ($trendingProducts as $product)
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3" style="text-decoration: none;">	
+                        <div class="card link-no-style">
+
+                            <form id="itemHistoryForm" method="GET" action="/item/{{ $product->ebay_id }}">
+                                <input type="hidden" name="name" value="{{ $product->name }}">
+                                <input type="hidden" name="price" value="{{ $product->last_known_price }}">
+                                <input type="hidden" name="image" value="{{ $product->image }}">
+                                <input type="hidden" name="url" value="{{ $product->url }}">
+                                                            
+                                <a href="#" onclick="$(this).closest('form').submit()"><img class="card-img-top" src="{{ $product->image }}"></a>
+                                <div class="card-block">
+                                    <h5 class="card-title hideOverflow">{{ $product->name }}</h5>
+                                    USD {{ $product->last_known_price }}
+                                </div>
+                            </form> 
+                        </div>      
+                     </div>
+                    @endforeach
+                @endif     
+            </div>   
+        </div>
+
+
 
         <!-- Modal -->
         <div class="modal" id="emailModal" tabindex="-1" role="dialog">
