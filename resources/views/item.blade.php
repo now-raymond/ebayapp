@@ -16,6 +16,10 @@
         <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
         <!-- <link rel="stylesheet" href="{{ URL::asset('css/style.css') }}" type="text/css">  -->
 
+        <!-- Moment.js & Chart.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+
         <style>
             /* The following overwrite some bootstrap css properties */
             .card{
@@ -61,6 +65,7 @@
                             <hr>
                             <h3>USD {{ $product->price }}</h3>
                             <button type="button" class="btn btn-success" data-toggle="modal" data-target="#watchProductModal">Add to watch list</button>
+                            <a href="{{ $product->url }}" class="btn btn-info" role="button">View on eBay</a>
                         </div>
                     </div>   
                 </div>
@@ -71,10 +76,63 @@
                     <hr>
                     @if(count ($records) > 0)
                         <h4>Price History</h4>
-                        @foreach ($records as $record)	
-                            <div>
+                        <canvas id="priceHistoryChart"></canvas>
+                        <script>
+                            var ctx = document.getElementById("priceHistoryChart").getContext('2d');
+                            var chartData = [];
+                            @foreach ($records as $record)
+                                chartData.push({
+                                    x: new Date("{{ $record->timestamp }}"),
+                                    y: {{ $record->price }}
+                                });
+                            @endforeach
+                            // Add today's price
+                            chartData.unshift({
+                                x: new Date(),
+                                y: chartData[0].y
+                            });
+
+                            var myChart = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    datasets: [{
+                                        label: 'Price (USD)',
+                                        data: chartData,
+                                        steppedLine: 'after',
+                                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                                        borderColor: 'rgba(54, 162, 235, 0.8)',
+                                        // borderWidth: 1,
+                                        fill: false
+                                    }]
+                                },
+                                options: {
+                                    scales: {
+                                        xAxes: [{
+                                            type: 'time',
+                                            time: {
+                                                // unit: "day",
+                                                tooltipFormat: 'll HH:mm',
+                                                // max: new Date()
+                                            },
+                                            scaleLabel: {
+                                                display: true,
+                                                labelString: 'Date'
+                                            }
+                                        }],
+                                        yAxes: [{
+                                            ticks: {
+                                                beginAtZero:true
+                                            }
+                                        }]
+                                    }
+                                }
+                            });
+                        </script>
+                        @foreach ($records as $record)
+                            <!-- Display as text -->
+                            <!-- <div>
                                 <p>{{ $record->timestamp }} - USD {{ $record->price }}</p>
-                            </div>
+                            </div> -->
                         @endforeach
                     @endif                    
                 </div>
