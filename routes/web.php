@@ -20,3 +20,4 @@ Route::get('/search', 'ProductController@search');
 Route::get('/item/{id}', 'ProductController@item');
 Route::post('/watchlist/add', 'ProductController@addWatchProduct');
 Route::get('/watchlist', 'ProductController@getWatchProduct');
+Route::post('/remove', 'ProductController@removeWatchProduct');
