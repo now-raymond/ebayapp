@@ -12,6 +12,9 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
+        <!-- Font Awesome -->
+        <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js"></script>
+        
         <!-- Font -->
         <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
         <!-- <link rel="stylesheet" href="{{ URL::asset('css/style.css') }}" type="text/css">  -->
@@ -41,6 +44,10 @@
             .card-title{
                 padding-top:10px;
             }
+
+            .round-btn:hover{
+                background-color: lightgrey;
+            }
         </style>
 
     </head>
@@ -61,11 +68,23 @@
 
         <!-- Products found -->
         <div class="container" style="padding:30px 0 70px 0">
+            <h1>Watch List</h1>
             <div class="card-group row">
                 @if($products != null)
                     @foreach ($products as $product)
                     <div class="col-12 col-sm-6 col-md-4 col-lg-3" style="text-decoration: none;">	
                         <div class="card link-no-style">
+                            
+                            <form class="form-inline" method="POST" action="/remove">
+                                <input type="hidden" name="product_id" value="{{ $product->product_id }}">
+                                <input type="hidden" name="user_id" value="{{ $product->user_id }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+                                <button type="submit" class="round-btn" style="position:absolute; top:-5px; right: -5px; border-radius:20px">
+                                    <i class="fas fa-trash-alt" style="color:black"></i> 
+                                </button>                               
+                            </form>                               
+                            
                             <a href="/item/{{ $product->ebay_id }}"><img class="card-img-top" src="{{ $product->image }}"></a>
                             <div class="card-block">
                                 <h5 class="card-title hideOverflow">{{ $product->name }}</h5>

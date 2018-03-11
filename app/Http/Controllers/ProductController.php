@@ -160,7 +160,7 @@ class ProductController extends Controller {
                     FROM products 
                     JOIN product_watches ON products.id = product_watches.product_id
                     WHERE product_watches.user_id = ?";
-        $watching = DB::select($query, array($user[0]->id));
+        $watching = DB::select($query, array($userId));
 
         return view('watchlist', [
             'products' => $watching,
