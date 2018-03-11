@@ -30,6 +30,7 @@ class ProductController extends Controller {
         }
        
         return view('search', [
+            'query' => $productName,
             'products' => $items,
         ]);
     }
@@ -58,6 +59,10 @@ class ProductController extends Controller {
             $token = $this->getToken();
             $request->session()->put('token', $token);
         }
+
+        // Update visited_count on 'products' table
+        $updateVisitedCountQuery = "UPDATE products SET visited_count = visited_count + 1 WHERE ebay_id = ?";
+        DB::statement($updateVisitedCountQuery, array($id));
 
         // return: product_id, price, timestamp (JOIN 'products' table to for name)
         $query = "SELECT price_history.product_id, price_history.price, price_history.timestamp 
