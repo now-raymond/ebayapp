@@ -23,7 +23,8 @@ class PageController extends Controller {
         // Returns: visited_count, ebay_id, name, image, url, last_known_price
         $trendingProductsQuery = "SELECT visited_count, ebay_id, name, image, item_web_url AS url, last_known_price
                                     FROM products
-                                    ORDER BY visited_count DESC";
+                                    ORDER BY visited_count DESC
+                                    LIMIT 8";
         $trendingProducts = DB::select($trendingProductsQuery);
 
         return view('home', [
