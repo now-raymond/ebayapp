@@ -66,11 +66,19 @@
                     @foreach ($products as $product)
                     <div class="col-12 col-sm-6 col-md-4 col-lg-3" style="text-decoration: none;">	
                         <div class="card link-no-style">
-                            <a href="/item/{{ $product->itemId }}"><img class="card-img-top" src="{{ $product->image->imageUrl }}"></a>
-                            <div class="card-block">
-                                <h5 class="card-title hideOverflow">{{ $product->title }}</h5>
-                                USD {{ $product->price->value }}
-                            </div>
+
+                            <form id="itemHistoryForm" method="GET" action="/item/{{ $product->itemId }}">
+                                <input type="hidden" name="name" value="{{ $product->title }}">
+                                <input type="hidden" name="price" value="{{ $product->price->value }}">
+                                <input type="hidden" name="image" value="{{ $product->image->imageUrl }}">
+                                <input type="hidden" name="url" value="{{ $product->itemWebUrl }}">
+                                                            
+                                <a href="#" onclick="$(this).closest('form').submit()"><img class="card-img-top" src="{{ $product->image->imageUrl }}"></a>
+                                <div class="card-block">
+                                    <h5 class="card-title hideOverflow">{{ $product->title }}</h5>
+                                    USD {{ $product->price->value }}
+                                </div>
+                            </form> 
                         </div>      
                      </div>
                     @endforeach

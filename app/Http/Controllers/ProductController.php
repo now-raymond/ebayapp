@@ -23,24 +23,8 @@ class ProductController extends Controller {
         }
 
         $response = $this->searchItem($token, $productName);
-
         if($response->total > 0){
-            // Insert new record to 'products' table if has not been searched perviously
             $items = $response->itemSummaries;
-            foreach ($items as $item) {
-                $isProductExist = DB::select("SELECT last_known_price FROM products WHERE ebay_id = ?", array($item->itemId));
-                if($isProductExist == null){
-
-                    DB::insert("INSERT INTO products (ebay_id, name, image, last_known_price) VALUES (?, ?, ?, ?)", array($item->itemId, $item->title, $item->image->imageUrl, $item->price->value));   
-                    $record = DB::select("SELECT id FROM products WHERE ebay_id = ?", array($item->itemId));
-
-                    // TODO: Input correct timestamp 
-                    DB::insert("INSERT INTO price_history (product_id, price) VALUES (?, ?)", array($record[0]->id, $item->price->value));   
-                }else{
-                    // Update the last_known_price if the product exists
-                    DB::update("UPDATE products SET last_known_price = ? WHERE ebay_id = ?", array($item->price->value, $item->itemId));
-                }   
-            }
         }else{
             $items = null;
         }
@@ -52,6 +36,22 @@ class ProductController extends Controller {
 
     // Search 'price_history' table for selected product record(s) using $productId 
     public function item(Request $request, $id){
+        
+        $productName = $request->input('name');
+        $productImage = $request->input('image');
+        $productPrice = $request->input('price');
+        $productUrl = $request->input('url');
+
+        // Insert product searched into database if it doesn't already exist
+        $isProductExist = DB::select("SELECT last_known_price FROM products WHERE ebay_id = ?", array($id));
+        if($isProductExist == null){
+            // Insert into 'products' table
+            DB::insert("INSERT INTO products (ebay_id, name, image, item_web_url, last_known_price) VALUES (?, ?, ?, ?, ?)", array($id, $productName, $productImage, $productUrl, $productPrice)); 
+            
+            // Insert into 'price_history' table
+            $record = DB::select("SELECT id FROM products WHERE ebay_id = ?", array($id));
+            DB::insert("INSERT INTO price_history (product_id, price) VALUES (?, ?)", array($record[0]->id, $productPrice));
+        }
 
         $token = $request->session()->get('token', 'not found');
         if($token == 'not found'){
@@ -80,7 +80,8 @@ class ProductController extends Controller {
         $product = (object)['title'=>$response->title, 
                             'details'=>$shortDescription,
                             'price'=>$response->price->value,
-                            'image'=>$response->image->imageUrl];
+                            'image'=>$response->image->imageUrl,
+                            'url'=>$productUrl];
 
         return view('item', [
             'records' => $records,
