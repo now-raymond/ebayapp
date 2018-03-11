@@ -131,6 +131,28 @@ class ProductController extends Controller {
         ]);
     }
 
+    // Removes a product from the specified user's watchlist.
+    public function removeWatchProduct(Request $request) {
+        $userId = $request->input('user_id');
+        $productId = $request->input('product_id');
+        
+        $deleteQuery = "DELETE FROM product_watches
+                        WHERE user_id = ? AND product_id = ?";
+
+        DB::delete($deleteQuery, array($userId, $productId));
+
+        // Retrieve products watched by the user
+        $query = "SELECT *
+                    FROM products 
+                    JOIN product_watches ON products.id = product_watches.product_id
+                    WHERE product_watches.user_id = ?";
+        $watching = DB::select($query, array($user[0]->id));
+
+        return view('watchlist', [
+            'products' => $watching,
+        ]);
+    }
+
     // Get user watching list
     public function getWatchProduct(Request $request){
         $email = $request->input('email');
